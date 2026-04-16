@@ -1,7 +1,7 @@
 import { Telegraf } from "telegraf";
 import { handleQuery } from "./handlers/query";
 import { handleIngest } from "./handlers/ingest";
-import { callClaudeWithMCP } from "./mcp";
+import { getVaultStatus } from "./mcp";
 
 export function createBot(): Telegraf {
   const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
@@ -36,24 +36,11 @@ export function createBot(): Telegraf {
   });
 
   bot.command("status", async (ctx) => {
-    const thinking = await ctx.reply("Checking vault status...");
     try {
-      const result = await callClaudeWithMCP(
-        "Call the vault_status tool and return the result as plain text: article counts by domain and status, and the last pull timestamp."
-      );
-      await ctx.telegram.editMessageText(
-        ctx.chat.id,
-        thinking.message_id,
-        undefined,
-        result
-      );
+      const status = await getVaultStatus();
+      await ctx.reply(status);
     } catch (err: any) {
-      await ctx.telegram.editMessageText(
-        ctx.chat.id,
-        thinking.message_id,
-        undefined,
-        `❌ Error: ${err.message}`
-      );
+      await ctx.reply(`❌ Status error: ${err.message}`);
     }
   });
 

@@ -1,5 +1,5 @@
 import { Context } from "telegraf";
-import { callClaudeWithMCP } from "../mcp";
+import { queryVault } from "../mcp";
 
 const TELEGRAM_MAX_LENGTH = 4096;
 
@@ -7,7 +7,7 @@ export async function handleQuery(ctx: Context, userMessage: string): Promise<vo
   const thinking = await ctx.reply("Searching vault...");
 
   try {
-    const result = await callClaudeWithMCP(userMessage);
+    const result = await queryVault(userMessage);
 
     if (result.length <= TELEGRAM_MAX_LENGTH) {
       await ctx.telegram.editMessageText(
