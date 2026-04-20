@@ -3,6 +3,22 @@ import { handleQuery } from "./handlers/query";
 import { handleIngest } from "./handlers/ingest";
 import { getVaultStatus } from "./mcp";
 
+// Static help text — shown by /start and /help. Both commands return the
+// same message by design: new users see the full capability surface up
+// front, returning users get a refresher without hunting for a separate
+// command. The two interaction modes (query, URL ingest) are both named
+// explicitly so URL ingest is not a feature users only discover by trying
+// (v1.8 §4 discoverability fix).
+const HELP_TEXT =
+  "llm-wiki bot\n\n" +
+  "• Querying — send any text message and I'll search your knowledge vault.\n" +
+  "• Ingesting — send any URL starting with http:// or https:// and I'll capture " +
+  "the page to your raw/ folder for processing by the Ingest Agent.\n\n" +
+  "Commands:\n" +
+  "/status — vault stats (note counts, last MCP refresh)\n" +
+  "/help — this message\n" +
+  "/start — same as /help";
+
 export function createBot(): Telegraf {
   const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
 
@@ -14,25 +30,11 @@ export function createBot(): Telegraf {
   });
 
   bot.command("start", (ctx) => {
-    ctx.reply(
-      "llm-wiki bot\n\n" +
-        "Send a question to search the vault.\n" +
-        "Send a URL to ingest it into raw/.\n\n" +
-        "Commands:\n" +
-        "/status — vault article counts and last pull\n" +
-        "/help — show this message"
-    );
+    ctx.reply(HELP_TEXT);
   });
 
   bot.command("help", (ctx) => {
-    ctx.reply(
-      "Usage:\n\n" +
-        "• Text message → query the wiki vault\n" +
-        "• URL (http/https) → fetch, convert to markdown, commit to raw/\n\n" +
-        "Commands:\n" +
-        "/status — vault status\n" +
-        "/help — this message"
-    );
+    ctx.reply(HELP_TEXT);
   });
 
   bot.command("status", async (ctx) => {
