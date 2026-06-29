@@ -16,8 +16,31 @@ const HELP_TEXT =
   "the page to your raw/ folder for processing by the Ingest Agent.\n\n" +
   "Commands:\n" +
   "/status — vault stats (note counts, last MCP refresh)\n" +
+  "/help_expiration — how to rotate a credential / update its expiry\n" +
   "/help — this message\n" +
   "/start — same as /help";
+
+// Self-contained credential-rotation procedure (v1.12). Returned verbatim by
+// /help_expiration as a clean ordered list — neurodiverse-friendly recall when
+// the daily expiry heads-up DM lands. Deliberately a hardcoded string: NO file
+// read, NO repo dependency, NO GitHub call, so the command is instant and works
+// even if every other system is down. Ground-truth source is the rotation
+// procedure in llm-wiki STATE.md + the config shape in
+// llm-wiki-n8n/config/credential-expiry.json; this string is reconciled against
+// them and is the single edit point if the procedure ever changes (the accepted
+// drift-coupling cost of self-contained help).
+export const EXPIRY_HELP_TEXT =
+  "🔑 Rotate a credential / update its expiry\n\n" +
+  "When the daily heads-up DM warns a credential is expiring:\n\n" +
+  "1. Rotate the credential at its source:\n" +
+  "   • llm-n8n API key → n8n UI\n" +
+  "   • llm-wiki-github / llm-wiki-n8n PATs → GitHub\n" +
+  "2. Update config/credential-expiry.json in the llm-wiki-n8n repo: set that " +
+  "credential's \"expires\" to the new date (YYYY-MM-DD).\n" +
+  "3. Commit and push to main — the branch Workflow D reads.\n" +
+  "4. Done. The next 06:00 (America/Indiana/Indianapolis) check reads the new " +
+  "date automatically — no n8n redeploy, no workflow edit. The daily heads-up " +
+  "stops once the date is back outside the 7-day window.";
 
 export function createBot(): Telegraf {
   const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
@@ -35,6 +58,10 @@ export function createBot(): Telegraf {
 
   bot.command("help", (ctx) => {
     ctx.reply(HELP_TEXT);
+  });
+
+  bot.command("help_expiration", (ctx) => {
+    ctx.reply(EXPIRY_HELP_TEXT);
   });
 
   bot.command("status", async (ctx) => {
